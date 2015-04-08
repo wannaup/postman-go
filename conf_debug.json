@@ -1,0 +1,11 @@
+{
+	"ENVIRONMENT": "DBG",
+	"PORT": "3001",
+	"DBURI": "127.0.0.1:27017",
+	"DBNAME": "wure",
+    "INBOUND_EMAIL_DOMAIN": "inbound.bau.it",
+    "MAIL_PROVIDER": "mandrill",
+    "MANDRILL_API_HOST": "https://mandrillapp.com",
+    "MANDRILL_API_URL": "/api/1.0/messages/send.json",
+    "MANDRILL_API_KEY": ""
+}
