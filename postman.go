@@ -80,6 +80,7 @@ func ProcessInbound(w http.ResponseWriter, r *http.Request) {
     if err != nil{
         http.Error(w, "Your JSON is not GOOD", http.StatusBadRequest)
         log.Println(err.Error())
+        log.Println(mPostValue)
         return
     }
     thedb := context.Get(r, db).(*mgo.Database)
