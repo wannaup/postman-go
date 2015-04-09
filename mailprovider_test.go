@@ -57,10 +57,10 @@ var TestMandrillInbound = []byte(`
             "from_email": "pinco@test.com",
             "from_name": "pinco@test.com",
             "to": [
-                {
-                    "email": "$INBOUNDMAIL$",
-                    "name": "pallo@test.com"
-                }
+                [
+                    "$INBOUNDMAIL$",
+                    "pallo@test.com"
+                ]
             ]
         }
     }

@@ -44,7 +44,7 @@ type MandrillMsgIn struct {
     Subject string  `json:"subject"`
     From_email  string  `json:"from_email"`
     From_name string  `json:"from_name,omitempty"`
-    To    [][]   `json:"to"`
+    To    [][]string   `json:"to"`
     Headers map[string]interface{}  `json:"headers"`
 }
 

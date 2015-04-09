@@ -92,7 +92,7 @@ func ProcessInbound(w http.ResponseWriter, r *http.Request) {
             continue
         }
         //get thread id from To field
-        var tId = strings.Split(val.Msg.To[0].Email, "@")[0]
+        var tId = strings.Split(val.Msg.To[0][0], "@")[0]
         if !bson.IsObjectIdHex(tId) {
             log.Println("Invalid thread identifier in address:", val.Msg.To)
             continue
