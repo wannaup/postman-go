@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
     "log"
     "bytes"
 	"net/http"

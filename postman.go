@@ -30,11 +30,10 @@ var config map[string]string
 func main() {
     mode := flag.String("m", "d", "d=debug p=production")
     flag.Parse()
-    if mode == 'd' {
-        PreFlight('config_debug.json')
-    }
-    else{
-        PreFlight('')
+    if *mode == "d" {
+        PreFlight("config_debug.json")
+    }else{   //production
+        PreFlight("")
     }
     n := StirNegroni()
     //and run
@@ -232,8 +231,6 @@ func JSONResponse(w http.ResponseWriter, m interface{}) {
 
 func MongoMiddleware() negroni.HandlerFunc {
     database := config["DBNAME"] //os.Getenv("DB_NAME")
-    session := nil
-    err := nil
     session, err := mgo.Dial(config["DBURI"])
     
     if err != nil {
@@ -286,8 +283,8 @@ func IsUserIdValid(uid string) bool {
 }
 
 //loads the app configuration
-func LoadConfig(fname string, config interface{}) {
-    if fname != ''{
+func LoadConfig(fname string, config *map[string]string) {
+    if fname != "" {
         file, _ := os.Open(fname)
         defer file.Close()
         decoder := json.NewDecoder(file)
@@ -296,17 +293,18 @@ func LoadConfig(fname string, config interface{}) {
             fmt.Println("error loading go config file:", err)
             panic(err)
         }
-    }
-    else{
-        config['ENVIRONMENT'] = os.Getenv("ENVIRONMENT")
-        config["PORT"]: os.Getenv("PORT")
-        config["DBURI"]: os.Getenv("DBURI")
-        config["DBNAME"]: os.Getenv("DBNAME")
-        config["INBOUND_EMAIL_DOMAIN"]: os.Getenv("INBOUND_EMAIL_DOMAIN")
-        config["MAIL_PROVIDER"]: os.Getenv("MAIL_PROVIDER")
-        config["MANDRILL_API_HOST"]: os.Getenv("MANDRILL_API_HOST")
-        config["MANDRILL_API_URL"]: os.Getenv("MANDRILL_API_URL")
-        config["MANDRILL_API_KEY"]: os.Getenv("MANDRILL_API_KEY")
+    }else{
+        *config = map[string]string{
+            "ENVIRONMENT" : os.Getenv("ENVIRONMENT"),
+            "PORT": os.Getenv("PORT"),
+            "DBURI": os.Getenv("DBURI"),
+            "DBNAME": os.Getenv("DBNAME"),
+            "INBOUND_EMAIL_DOMAIN": os.Getenv("INBOUND_EMAIL_DOMAIN"),
+            "MAIL_PROVIDER": os.Getenv("MAIL_PROVIDER"),
+            "MANDRILL_API_HOST": os.Getenv("MANDRILL_API_HOST"),
+            "MANDRILL_API_URL": os.Getenv("MANDRILL_API_URL"),
+            "MANDRILL_API_KEY": os.Getenv("MANDRILL_API_KEY"),
+        }
     }
 }
 

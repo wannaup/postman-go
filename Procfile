@@ -1,1 +1,1 @@
-web: postman-go
+web: postman-go -m p
