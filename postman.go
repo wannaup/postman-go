@@ -31,7 +31,7 @@ func main() {
     mode := flag.String("m", "d", "d=debug p=production")
     flag.Parse()
     if *mode == "d" {
-        PreFlight("config_debug.json")
+        PreFlight("conf_debug.json")
     }else{   //production
         PreFlight("")
     }
@@ -50,7 +50,8 @@ func StirNegroni() *negroni.Negroni{
     n := negroni.Classic()
     //routes
     rt := mux.NewRouter().StrictSlash(true)
-    rt.HandleFunc("/inbound", ProcessInbound).Methods("POST")
+    rt.HandleFunc("/inbound", ProcessInbound).Methods("POST")  //OK
+    rt.HandleFunc("/inbound", HeadInbound).Methods("HEAD")     
     authRoutes := mux.NewRouter().StrictSlash(true)
     authRoutes.HandleFunc("/threads", CreateThread).Methods("POST")     //OK
     authRoutes.HandleFunc("/threads", GetAllThreads).Methods("GET")     //OK
@@ -65,6 +66,10 @@ func StirNegroni() *negroni.Negroni{
     // router goes last
     n.UseHandler(rt)
     return n
+}
+
+func HeadInbound(w http.ResponseWriter, r *http.Request) {
+    w.Write([]byte("OK"))
 }
 
 func ProcessInbound(w http.ResponseWriter, r *http.Request) {
