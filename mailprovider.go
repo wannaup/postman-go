@@ -35,7 +35,7 @@ type MandrillMsg struct {
     From_email	string 	`json:"from_email"`
     From_name	string 	`json:"from_name,omitempty"`
     To 		[]MandrillRecipient 	`json:"to"`
-   	Headers map[string]string 	`json:"headers"`
+   	Headers map[string]interface{} 	`json:"headers"`
 }
 
 type MandrillEvent struct {
@@ -56,7 +56,8 @@ func (m *MandrillMailProvider) SendMail(threadId string, from string, to []strin
     for _, val := range to {
     	rcpts = append(rcpts, MandrillRecipient{Email: val, Name: val})
     }
-    hdr := map[string]string{"Reply-To": threadId + "@" + m.InboundEmailDomain}
+    hdr := make(map[string]interface{})
+    hdr["Reply-To"] = threadId + "@" + m.InboundEmailDomain
 	mmsg := MandrillMsg{
 		msg,
 		msg,
