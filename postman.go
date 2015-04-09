@@ -106,7 +106,7 @@ func ProcessInbound(w http.ResponseWriter, r *http.Request) {
             continue
         }
         //send mail 
-        go NewMailProvider(config).SendMail(thread.Id.String(), nMsg.From, []string{nMsg.To}, nMsg.Msg)
+        go NewMailProvider(config).SendMail(thread.Id.Hex(), nMsg.From, []string{nMsg.To}, nMsg.Msg)
     }
     w.Write([]byte("OK"))
 }
