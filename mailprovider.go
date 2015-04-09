@@ -38,10 +38,20 @@ type MandrillMsg struct {
    	Headers map[string]interface{} 	`json:"headers"`
 }
 
+type MandrillMsgIn struct {
+    Html  string  `json:"html"`
+    Text  string  `json:"text"`
+    Subject string  `json:"subject"`
+    From_email  string  `json:"from_email"`
+    From_name string  `json:"from_name,omitempty"`
+    To    [][]   `json:"to"`
+    Headers map[string]interface{}  `json:"headers"`
+}
+
 type MandrillEvent struct {
     Ts      int     `json:"ts"`
     Event   string  `json:"event"`
-    Msg   MandrillMsg  `json:"msg"`
+    Msg   MandrillMsgIn  `json:"msg"`
 }
 
 type MandrillMailProvider struct {
