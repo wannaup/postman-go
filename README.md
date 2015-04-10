@@ -25,6 +25,12 @@ out:
 [
   {
     id: "...",
+    meta: {
+      "some": "meta",
+      "other": { 
+        "beautiful": [ "meta" ]
+      }
+    },
     owner: {
       id: "..."
     },
@@ -47,6 +53,12 @@ out:
 ```  
 {
   id: "...",
+  meta: {
+    "some": "meta",
+    "other": { 
+      "beautiful": [ "meta" ]
+    }
+  },
   owner: {
     id: "..."
   },
@@ -62,7 +74,7 @@ out:
 
 `POST   /threads`
 
-create a new thread, upon creation postman sends a mail containing the message *msg* to the *to* email address setting the sender as the *from* mail address and the *reply-to* field to the email address of the mail node (inbound.yourdomain.com).
+create a new thread, upon creation postman sends a mail containing the message *msg* to the *to* email address setting the sender as the *from* mail address and the *reply-to* field to the email address of the mail node (inbound.yourdomain.com). You can include additional info in the *meta* field, they will be always returned when you ask for the thread.
 
 in:
 ``` 
@@ -70,7 +82,13 @@ in:
   
   from: "pinco@random.com",
   to: "pinco@random.com",
-  msg: "hello!"
+  msg: "hello!",
+  meta: {
+    "some": "meta",
+    "other": { 
+      "beautiful": [ "meta" ]
+    }
+  }
   
 }
 ```

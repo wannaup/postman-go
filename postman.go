@@ -68,10 +68,12 @@ func StirNegroni() *negroni.Negroni{
     return n
 }
 
+//the mail provider wants to validate the endpoint before you can start using it
 func HeadInbound(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte("OK"))
 }
 
+//process a new mail message coming from the mail provider
 func ProcessInbound(w http.ResponseWriter, r *http.Request) {
     r.ParseMultipartForm(884808408)
     mPostValue := r.FormValue("mandrill_events")
@@ -111,9 +113,10 @@ func ProcessInbound(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte("OK"))
 }
 
+//creates a new thread upon user request, he'll become the owner of the thread
 func CreateThread(w http.ResponseWriter, r *http.Request) {
-    var nMsg Message
-    err := UnmarshalObject(r.Body, &nMsg)
+    var nThrReq ThreadCreationReq
+    err := UnmarshalObject(r.Body, &nThrReq)
     if err != nil{
         http.Error(w, "Your JSON is not GOOD", http.StatusBadRequest)
         return
@@ -121,13 +124,13 @@ func CreateThread(w http.ResponseWriter, r *http.Request) {
     thedb := context.Get(r, db).(*mgo.Database)
     tColl := thedb.C("message_threads")
     var owner = Owner{bson.ObjectIdHex(context.Get(r, userId).(string))}
-    nThread := Thread{bson.NewObjectId(), owner, []Message{nMsg}}
+    nThread := Thread{ bson.NewObjectId(), owner, nThrReq.Meta, []Message{ Message{From: nThrReq.From, To: nThrReq.To, Msg: nThrReq.Msg} } }
     err = tColl.Insert(nThread)
     if err != nil {
         panic("Can't create thread:" + err.Error())
     }
     //actually send out the mail
-    go NewMailProvider(config).SendMail(nThread.Id.Hex(), nMsg.From, []string{nMsg.To}, nMsg.Msg)
+    go NewMailProvider(config).SendMail(nThread.Id.Hex(), nThrReq.From, []string{nThrReq.To}, nThrReq.Msg)
     //config thread creation
     JSONResponse(w, nThread)
 }

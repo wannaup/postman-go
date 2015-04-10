@@ -14,6 +14,7 @@ import (
     "github.com/codegangsta/negroni"
     "gopkg.in/mgo.v2"
     "gopkg.in/mgo.v2/bson"
+    "fmt"
 )
 
 const TestAuthHeader string = "Basic NTE4Y2JiMTM4OWRhNzlkM2EyNTQ1M2Y5Om5vcGFzc3c="
@@ -105,6 +106,8 @@ func TestCreateThread(t *testing.T) {
     //save created thread so we can test later
     createdThreadId = nt.Id
     nt.Id = ""
+    fmt.Printf("%+v\n", nt)
+    fmt.Printf("%+v\n", tt)
     require.Equal(reflect.DeepEqual(tt, nt), true)
 }
 
