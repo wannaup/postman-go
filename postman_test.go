@@ -25,9 +25,11 @@ const TestInvalidAuthHeader string = "Basic ODkzZDIyM2o4MDkyaWQ6dGVzdA==="
 
 
 var TestOwnerId string = "518cbb1389da79d3a25453f9"
+var TestThreadCreationMsg = []byte(`{"meta":{ "pid": "518cbb1389da79d3a25453f9"},"from": "pinco@random.com","to": "pinco@modnar.com","msg": "hello!"}`)
 var TestMsg = []byte(`{"from": "pinco@random.com","to": "pinco@modnar.com","msg": "hello!"}`)
 var TestThread = []byte(`{
 	"id":"",
+    "meta": { "pid": "518cbb1389da79d3a25453f9"},
     "owner": {
         "id": "518cbb1389da79d3a25453f9"
     },
@@ -83,8 +85,8 @@ func TestAuth (t *testing.T) {
 
 func TestCreateThread(t *testing.T) {
     proofInvalidJSON("/threads",t)
-    proofNoAuth("/threads", "POST", TestMsg, t)
-	request := BuildJSONReq("POST", "/threads", TestMsg)
+    proofNoAuth("/threads", "POST", TestThreadCreationMsg, t)
+	request := BuildJSONReq("POST", "/threads", TestThreadCreationMsg)
 	AuthRequest(request, TestAuthHeader)
     response := httptest.NewRecorder()
     //create fake mailprovider in order to process sendmail request
@@ -203,6 +205,28 @@ func TestReplyThread(t *testing.T) {
     require.Equal(response.Code, http.StatusInternalServerError)
 }
 
+//test message read 
+func TestMessageRead(t *testing.T) {
+    //proofInvalidJSON("/threads/" + createdThreadId.Hex() + "/msgs/" + "0" + "/read", t)
+    proofNoAuth("/threads/" + createdThreadId.Hex() + "/msgs/" + "0" + "/read", "POST", TestReplyMsg, t)    
+    request, _ := http.NewRequest("POST", "/threads/" + createdThreadId.Hex() + "/msgs/" + "0" + "/read", nil)
+    AuthRequest(request, TestAuthHeader)
+    response := httptest.NewRecorder()
+    negro.ServeHTTP(response, request)
+    require := require.New(t)
+    require.Equal(response.Code, http.StatusOK)
+    // test correct
+    request, _ = http.NewRequest("GET", "/threads/" + createdThreadId.Hex(), nil)
+    AuthRequest(request, TestAuthHeader)
+    response = httptest.NewRecorder()
+    negro.ServeHTTP(response, request)
+    require.Equal(response.Code, http.StatusOK)
+    var tr Thread
+    UnmarshalObject(response.Body, &tr)
+    var readtime = tr.Messages[0].Read
+    require.NotNil(readtime)
+}
+
 //test we can correctly receive inbound requests from mail provider
 func TestInbound(t *testing.T) {
     proofInvalidJSON("/inbound", t)
@@ -247,6 +271,15 @@ func TestInbound(t *testing.T) {
     response = httptest.NewRecorder()
     negro.ServeHTTP(response, request)
     require.Equal(response.Code, http.StatusOK) //we always say OK to mandrill
+}
+
+//test the inbound head 
+func TestInboundHead(t *testing.T) {
+    request, _ := http.NewRequest("HEAD", "/inbound", nil)
+    response := httptest.NewRecorder()
+    negro.ServeHTTP(response, request)
+    require := require.New(t)
+    require.Equal(response.Code, http.StatusOK)
 }
 
 func proofInvalidJSON(url string, t *testing.T){

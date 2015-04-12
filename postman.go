@@ -17,6 +17,7 @@ import (
     "github.com/gorilla/context"
     "gopkg.in/mgo.v2"
     "gopkg.in/mgo.v2/bson"
+    "time"
 )
 
 
@@ -51,12 +52,13 @@ func StirNegroni() *negroni.Negroni{
     //routes
     rt := mux.NewRouter().StrictSlash(true)
     rt.HandleFunc("/inbound", ProcessInbound).Methods("POST")  //OK
-    rt.HandleFunc("/inbound", HeadInbound).Methods("HEAD")     
+    rt.HandleFunc("/inbound", HeadInbound).Methods("HEAD")      //OK
     authRoutes := mux.NewRouter().StrictSlash(true)
     authRoutes.HandleFunc("/threads", CreateThread).Methods("POST")     //OK
     authRoutes.HandleFunc("/threads", GetAllThreads).Methods("GET")     //OK
     authRoutes.HandleFunc("/threads/{threadId}", GetOneThread).Methods("GET")   //OK
     authRoutes.HandleFunc("/threads/{threadId}/reply", ReplyThread).Methods("POST") //OK
+    authRoutes.HandleFunc("/threads/{threadId}/msgs/{msgId}/read", ReadThreadMsg).Methods("POST")   //OK
     rt.PathPrefix("/threads").Handler(negroni.New(
         negroni.HandlerFunc(BasicAuthMiddleware),
         negroni.Wrap(authRoutes),
@@ -206,6 +208,8 @@ func AddThreadReply(tColl *mgo.Collection, tId string, ownerId string, nMsg *Mes
         qm["owner.id"] = bson.ObjectIdHex(ownerId)
     }
     err := tColl.Find(qm).One(&thread)
+    log.Println("%v", thread)
+    
     if err != nil {
         return errors.New("Thread not found")
     }
@@ -227,6 +231,27 @@ func AddThreadReply(tColl *mgo.Collection, tId string, ownerId string, nMsg *Mes
     //update the thread struct
     thread.Messages = append(thread.Messages, *nMsg)
     return nil
+}
+
+//handles thread message read notification from the api
+func ReadThreadMsg(w http.ResponseWriter, r *http.Request) {
+    tId := mux.Vars(r)["threadId"]
+    mId := mux.Vars(r)["msgId"]
+    //verify threadid is a valid objectid
+    if !bson.IsObjectIdHex(tId) {
+        http.Error(w, "Invalid thread id", http.StatusBadRequest)
+    }
+    //update setting the mId-th message in the array to read
+    tColl := context.Get(r, db).(*mgo.Database).C("message_threads")
+    //ready for update
+    qm := bson.M{"_id": bson.ObjectIdHex(tId), "owner.id": bson.ObjectIdHex(context.Get(r, userId).(string))}
+    err := tColl.Update(qm, bson.M{"$set": bson.M{"messages." + mId + ".read": time.Now()}})
+    if err != nil {
+        log.Println("Can't set message as read: %v", err)
+        http.Error(w, "Can't set message as read", http.StatusInternalServerError)
+    }
+      
+    JSONResponse(w, "ok")
 }
 
 func JSONResponse(w http.ResponseWriter, m interface{}) {
